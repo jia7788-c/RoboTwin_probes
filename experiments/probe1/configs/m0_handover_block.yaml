@@ -1,0 +1,23 @@
+experiment: E0
+stage: M0
+task_name: handover_block
+task_config: demo_clean
+embodiment: aloha-agilex
+baseline: B0_joint_pi05_sft
+policy_name: pi05
+action_type: joint
+eval_seed: 0
+episodes: 1
+control_frequency_hz: 30
+# These must be read from the deployed policy/checkpoint before rollout.
+prediction_horizon: null
+executed_chunk_length: null
+thresholds:
+  stable_grasp_seconds: null
+  max_relative_motion_m: null
+  early_release_margin_seconds: null
+  release_opening: null
+  spatial_translation_m: null
+  spatial_rotation_rad: null
+threshold_status: uncalibrated
+formal_analysis_allowed: false

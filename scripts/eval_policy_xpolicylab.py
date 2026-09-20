@@ -32,6 +32,11 @@ from envs import CONFIGS_PATH
 from envs.utils.create_actor import UnStableError
 from generate_episode_instructions import generate_episode_descriptions
 
+# Optional Probe 1 logging stays dormant for every normal RoboTwin evaluation.
+from experiments.probe1.rollout.hook import finish_episode as probe1_finish_episode
+from experiments.probe1.rollout.hook import record_action as probe1_record_action
+from experiments.probe1.rollout.hook import start_episode as probe1_start_episode
+
 
 CAMERA_NAME_MAP = {
     "head_camera": "cam_head",
@@ -876,6 +881,12 @@ def eval_remote_policy(
         succ = False
         rollout_steps = 0
         rollout_failed = False
+        rollout_error = None
+        chunk_id = 0
+        probe_recorder = probe1_start_episode(
+            task_name=task_name, episode_id=now_id, seed=now_seed,
+            frequency=frequency, task_env=task_env,
+        )
         prepare_policy_case(model_client, task_name, now_seed, instruction, action_type)
         reset_policy(model_client)
         try:
@@ -893,6 +904,7 @@ def eval_remote_policy(
                 if len(action_chunk) == 0:
                     raise RuntimeError("Policy returned an empty action chunk.")
 
+                chunk_start_step = rollout_steps
                 for action_idx, action in enumerate(action_chunk):
                     flat_action, robotwin_action_type = xpolicylab_action_to_robotwin(
                         action,
@@ -901,6 +913,13 @@ def eval_remote_policy(
                     )
                     task_env.take_action(flat_action, action_type=robotwin_action_type)
                     rollout_steps += 1
+                    probe1_record_action(
+                        probe_recorder, task_env=task_env, observation=observation,
+                        raw_chunk=action_chunk, sent_action=flat_action,
+                        action_type=robotwin_action_type, chunk_id=chunk_id,
+                        chunk_start=chunk_start_step, action_index=action_idx,
+                        executed_length=action_idx + 1,
+                    )
 
                     if task_env.eval_success:
                         succ = True
@@ -920,8 +939,10 @@ def eval_remote_policy(
 
                 if succ:
                     break
-        except Exception:
+                chunk_id += 1
+        except Exception as exc:
             rollout_failed = True
+            rollout_error = f"{type(exc).__name__}: {exc}"
             print("\n\033[91mPolicy rollout error:\033[0m")
             print(traceback.format_exc())
 
@@ -929,6 +950,12 @@ def eval_remote_policy(
             task_env._del_eval_video_ffmpeg()
 
         notify_trial_end(model_client, task_name, now_seed, succ)
+
+        probe1_finish_episode(
+            probe_recorder, success=succ,
+            timed_out=(not succ and task_env.take_action_cnt >= task_env.step_lim),
+            error=rollout_error,
+        )
 
         if rollout_failed and rollout_steps == 0 and not succ:
             # Env broke before the policy could act (e.g. renderer buffer errors).
