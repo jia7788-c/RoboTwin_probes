@@ -4,7 +4,9 @@ task_name: handover_block
 task_config: demo_clean
 embodiment: aloha-agilex
 baseline: B0_joint_pi05_sft
+# Replace only after inspecting the pinned XPolicyLab policy catalog.
 policy_name: pi05
+training_seed: null
 action_type: joint
 eval_seed: 0
 episodes: 1

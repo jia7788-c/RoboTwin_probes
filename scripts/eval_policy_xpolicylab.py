@@ -34,6 +34,7 @@ from generate_episode_instructions import generate_episode_descriptions
 
 # Optional Probe 1 logging stays dormant for every normal RoboTwin evaluation.
 from experiments.probe1.rollout.hook import finish_episode as probe1_finish_episode
+from experiments.probe1.rollout.hook import limit_action_chunk as probe1_limit_action_chunk
 from experiments.probe1.rollout.hook import record_action as probe1_record_action
 from experiments.probe1.rollout.hook import start_episode as probe1_start_episode
 
@@ -903,6 +904,8 @@ def eval_remote_policy(
                 action_chunk = normalize_action_chunk(model_client.call(func_name="get_action"))
                 if len(action_chunk) == 0:
                     raise RuntimeError("Policy returned an empty action chunk.")
+                raw_action_chunk = action_chunk
+                action_chunk = probe1_limit_action_chunk(action_chunk)
 
                 chunk_start_step = rollout_steps
                 for action_idx, action in enumerate(action_chunk):
@@ -915,7 +918,7 @@ def eval_remote_policy(
                     rollout_steps += 1
                     probe1_record_action(
                         probe_recorder, task_env=task_env, observation=observation,
-                        raw_chunk=action_chunk, sent_action=flat_action,
+                        raw_chunk=raw_action_chunk, sent_action=flat_action,
                         action_type=robotwin_action_type, chunk_id=chunk_id,
                         chunk_start=chunk_start_step, action_index=action_idx,
                         executed_length=action_idx + 1,

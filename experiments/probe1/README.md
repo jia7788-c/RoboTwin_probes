@@ -5,6 +5,9 @@ unmodified joint π0.5 SFT policy on RoboTwin's registered `handover_block` task
 and `aloha-agilex` embodiment. It does **not** implement B1/B2, train a model,
 launch RL, choose the later task set, or claim experimental findings.
 
+Conda setup for the separate RoboTwin and OpenPI runtimes is documented in the
+repository-level [`ENVIRONMENTS.md`](../../ENVIRONMENTS.md).
+
 ## Environment audit (2026-09-20)
 
 | Check | Observed in this checkout |
@@ -61,11 +64,28 @@ out of scope until its recorder lifecycle has an integration test. Object poses,
 contacts/forces, velocities, phase labels and image indices remain null unless a
 future task-specific simulator extractor supplies real values.
 
+After real episode summaries have been reviewed/classified, aggregate them
+without modifying source logs:
+
+```bash
+python -m experiments.probe1.analysis.run_analysis \
+  /path/to/run --output /path/to/analysis/summary.json
+python -m experiments.probe1.analysis.plot_results \
+  --analysis /path/to/analysis/summary.json \
+  --output /path/to/analysis/micro_metrics.png
+```
+
+`configs/coupling_annotations.csv` is intentionally header-only: two blinded
+human annotators must provide C1–C4 and evidence. The code validates and scores
+those rows but never fabricates annotations or chooses tasks from model results.
+
 ## Offline tests
 
 ```bash
 python -m pytest experiments/probe1/tests -q
 python -m experiments.probe1.rollout.run_eval --help
+python -m experiments.probe1.analysis.run_analysis --help
+python -m experiments.probe1.analysis.plot_results --help
 ```
 
 Tests cover the success/failure contract, ambiguous earliest evidence, outcome
