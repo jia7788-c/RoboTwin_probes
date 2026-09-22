@@ -109,6 +109,8 @@ class EpisodeRecorder:
     prediction_horizon: int | None = None
     configured_executed_chunk_length: int | None = None
     video_path: str | None = None
+    baseline: str | None = None
+    training_seed: int | None = None
     _stream: Any = field(init=False, repr=False)
     _steps: int = field(default=0, init=False)
     _episode_dir: Path = field(init=False)
@@ -228,6 +230,8 @@ class EpisodeRecorder:
             "episode_id": self.episode_id,
             "run_id": self.run_id,
             "eval_seed": self.eval_seed,
+            "baseline": self.baseline,
+            "training_seed": self.training_seed,
             "success": bool(success),
             "termination_reason": termination_reason,
             "infrastructure_error": infrastructure_error,

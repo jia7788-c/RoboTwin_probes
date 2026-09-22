@@ -33,6 +33,7 @@ def row(i, success, failure=None, task="t", run="r", infra=None):
         "success": success,
         "primary_failure": failure,
         "infrastructure_error": infra,
+        "analysis": {"rule_version": "synthetic.v1", "confidence": "reviewed", "evidence": ["synthetic"]},
     }
 
 
@@ -191,7 +192,9 @@ def test_execution_length_is_explicit(monkeypatch):
 
 
 def test_offline_reader_and_analysis_cli(tmp_path: Path):
-    rec = EpisodeRecorder(tmp_path, "run", "handover_block", 0, 7, 30, 1 / 250)
+    rec = EpisodeRecorder(
+        tmp_path, "run", "handover_block", 0, 7, 30, 1 / 250, baseline="B0", training_seed=11
+    )
     rec.record_step(
         simulator_step=1,
         control_step=0,
@@ -206,11 +209,17 @@ def test_offline_reader_and_analysis_cli(tmp_path: Path):
     )
     summary = rec.finish(success=True, termination_reason="success")
     assert len(read_jsonl(summary.parent / "steps.jsonl")) == 1
-    assert len(load_episode_summaries([tmp_path])) == 1
+    loaded = load_episode_summaries([tmp_path])
+    assert len(loaded) == 1
+    assert loaded[0]["baseline"] == "B0" and loaded[0]["training_seed"] == 11
+    assert loaded[0]["primary_failure"] is None
+    assert loaded[0]["analysis"]["confidence"] == "unreviewed"
     output = tmp_path / "analysis.json"
     assert analysis_main([str(tmp_path), "--output", str(output)]) == 0
     result = json.loads(output.read_text())
     assert result["episode_micro"]["SR"] == 1
+    assert result["conditions"][0]["baseline"] == "B0"
+    assert result["conditions"][0]["training_seed"] == 11
 
 
 def test_coupling_annotations_require_two_humans_and_binary_scores(tmp_path: Path):

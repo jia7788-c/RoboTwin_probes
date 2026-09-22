@@ -1,0 +1,17 @@
+# Exact protocol defaults from probe1.docx; NOT evidence of calibration.
+# Calibrate TO_BE_CALIBRATED fields in an independent pilot before freezing.
+# This template intentionally blocks --formal. No real pilot has run.
+stable_grasp:
+  min_contact_frames: 8
+  max_object_gripper_velocity_gap: TO_BE_CALIBRATED
+release:
+  min_opening: TO_BE_CALIBRATED
+  min_no_contact_frames: 5
+handover:
+  early_release_margin_steps: TO_BE_CALIBRATED
+collision:
+  min_force: TO_BE_CALIBRATED
+  min_duration_steps: TO_BE_CALIBRATED
+metadata:
+  detector_version: v1
+  frozen_after_pilot: false
