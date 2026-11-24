@@ -73,13 +73,43 @@ OpenPI / JAX · Multi-task SFT · LoRA · ROS2</p>
 
 对历史联合全参模型（batch 2、150k 步，五任务 299/500 成功）的 **201 条失败**逐条人工审核：**173 条（86%）是单臂局部执行问题**（左臂 114、右臂 59），明确的双臂时序协调失败只有 2 条，空间协调失败 0 条，15 条无法确定。也就是说，在这五个任务上，主要瓶颈是单臂抓取、按压等精细动作，而不是双臂之间的配合。
 
-| 任务 | 成功 | 典型失败 |
-|---|:-:|:-:|
-| handover_block | <img src="assets/probe0/media/sim/handover_success.gif" width="200"> | <img src="assets/probe0/media/sim/handover_fail_knock.gif" width="200"><br><sub>左臂将方块碰倒</sub> <img src="assets/probe0/media/sim/handover_fail_handoff.gif" width="200"><br><sub>交接时右臂未夹住</sub> <img src="assets/probe0/media/sim/handover_fail_release.gif" width="200"><br><sub>右臂未抓稳，左臂已松开</sub> |
-| lift_pot | <img src="assets/probe0/media/sim/lift_pot_success.gif" width="200"> | <img src="assets/probe0/media/sim/lift_pot_fail_slip.gif" width="200"><br><sub>右侧抓持不稳，抬升时滑脱</sub> |
-| put_object_cabinet | <img src="assets/probe0/media/sim/cabinet_success.gif" width="200"> | <img src="assets/probe0/media/sim/cabinet_fail_wrongarm.gif" width="200"><br><sub>物体在右侧，左臂仍去左侧抓</sub> <img src="assets/probe0/media/sim/cabinet_fail_knock.gif" width="200"><br><sub>夹爪撞到物体，将其弹开</sub> <img src="assets/probe0/media/sim/cabinet_uncertain_occl.gif" width="200"><br><sub>开抽屉后目标被遮挡（归因不确定）</sub> |
-| place_empty_cup | <img src="assets/probe0/media/sim/cup_success.gif" width="200"> | <img src="assets/probe0/media/sim/cup_fail_miss.gif" width="200"><br><sub>在杯子右侧抓空</sub> <img src="assets/probe0/media/sim/cup_fail_drop.gif" width="200"><br><sub>放置偏差，调整时杯子掉落</sub> |
-| click_alarmclock | <img src="assets/probe0/media/sim/alarm_success.gif" width="200"> | <img src="assets/probe0/media/sim/alarm_fail_hover.gif" width="200"><br><sub>悬停在按钮上方，没有下压</sub> |
+<table>
+  <tr><td colspan="4"><code>handover_block</code></td></tr>
+  <tr>
+    <td align="center" valign="top" width="25%"><img src="assets/probe0/media/sim/handover_success.gif" width="180"><br><sub><b>成功</b></sub></td>
+    <td align="center" valign="top" width="25%"><img src="assets/probe0/media/sim/handover_fail_knock.gif" width="180"><br><sub>左臂将方块碰倒</sub></td>
+    <td align="center" valign="top" width="25%"><img src="assets/probe0/media/sim/handover_fail_handoff.gif" width="180"><br><sub>交接时右臂未夹住</sub></td>
+    <td align="center" valign="top" width="25%"><img src="assets/probe0/media/sim/handover_fail_release.gif" width="180"><br><sub>右臂未抓稳，左臂已松开</sub></td>
+  </tr>
+  <tr><td colspan="4"><code>lift_pot</code></td></tr>
+  <tr>
+    <td align="center" valign="top" width="25%"><img src="assets/probe0/media/sim/lift_pot_success.gif" width="180"><br><sub><b>成功</b></sub></td>
+    <td align="center" valign="top" width="25%"><img src="assets/probe0/media/sim/lift_pot_fail_slip.gif" width="180"><br><sub>右侧抓持不稳，抬升时滑脱</sub></td>
+    <td width="25%"></td>
+    <td width="25%"></td>
+  </tr>
+  <tr><td colspan="4"><code>put_object_cabinet</code></td></tr>
+  <tr>
+    <td align="center" valign="top" width="25%"><img src="assets/probe0/media/sim/cabinet_success.gif" width="180"><br><sub><b>成功</b></sub></td>
+    <td align="center" valign="top" width="25%"><img src="assets/probe0/media/sim/cabinet_fail_wrongarm.gif" width="180"><br><sub>物体在右侧，左臂仍去左侧抓</sub></td>
+    <td align="center" valign="top" width="25%"><img src="assets/probe0/media/sim/cabinet_fail_knock.gif" width="180"><br><sub>夹爪撞到物体，将其弹开</sub></td>
+    <td align="center" valign="top" width="25%"><img src="assets/probe0/media/sim/cabinet_uncertain_occl.gif" width="180"><br><sub>目标被抽屉遮挡（归因不确定）</sub></td>
+  </tr>
+  <tr><td colspan="4"><code>place_empty_cup</code></td></tr>
+  <tr>
+    <td align="center" valign="top" width="25%"><img src="assets/probe0/media/sim/cup_success.gif" width="180"><br><sub><b>成功</b></sub></td>
+    <td align="center" valign="top" width="25%"><img src="assets/probe0/media/sim/cup_fail_miss.gif" width="180"><br><sub>在杯子右侧抓空</sub></td>
+    <td align="center" valign="top" width="25%"><img src="assets/probe0/media/sim/cup_fail_drop.gif" width="180"><br><sub>放置偏差，调整时杯子掉落</sub></td>
+    <td width="25%"></td>
+  </tr>
+  <tr><td colspan="4"><code>click_alarmclock</code></td></tr>
+  <tr>
+    <td align="center" valign="top" width="25%"><img src="assets/probe0/media/sim/alarm_success.gif" width="180"><br><sub><b>成功</b></sub></td>
+    <td align="center" valign="top" width="25%"><img src="assets/probe0/media/sim/alarm_fail_hover.gif" width="180"><br><sub>悬停在按钮上方，没有下压</sub></td>
+    <td width="25%"></td>
+    <td width="25%"></td>
+  </tr>
+</table>
 
 失败片段截取自失败发生前后，1.5× 速。两个任务的失败集中在单侧：`click_alarmclock` 的 44 条失败中左臂 34 条，基本都是“悬停不下压”；`put_object_cabinet` 的 64 条失败中右臂 32 条、左臂 16 条，但右臂同时承担开抽屉和抓物两个角色，不能直接理解为右臂更不准。人工审核由单人完成，只能说明可见现象，内部原因还需要对齐动作 chunk 与实际关节状态来验证。
 
