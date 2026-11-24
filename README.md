@@ -19,7 +19,12 @@ OpenPI / JAX · Multi-task SFT · LoRA · ROS2</p>
 
 ## 仿真：微调范围对比
 
-四个模型使用同一份 250 条 clean 示范联合训练，每任务测试 100 个有效回合（H=50, K=50）。
+<p align="center">
+  <img src="assets/probe0/media/sim_five_tasks_success.gif" width="100%" alt="五任务成功回合：handover_block / lift_pot / put_object_cabinet / place_empty_cup / click_alarmclock">
+  <br><sub>五任务成功回合（从左到右：handover_block · lift_pot · put_object_cabinet · place_empty_cup · click_alarmclock），模型输入的 head camera 视角，已加速</sub>
+</p>
+
+策略输入为头部 + 左右腕三路 RGB（320×240 → 224×224）、14 维关节状态和任务指令；输出 50×14 关节动作 chunk，执行完 50 步后重新观测（H=K=50）。四个模型使用同一份 250 条 clean 示范联合训练，每任务测试 100 个有效回合；未微调的 π₀.₅ base 在这五个任务上平均仅 0.2%。
 
 <p align="center">
   <picture>
@@ -64,6 +69,20 @@ OpenPI / JAX · Multi-task SFT · LoRA · ROS2</p>
 
 </details>
 
+## 失败分析
+
+对历史联合全参模型（batch 2、150k 步，五任务 299/500 成功）的 **201 条失败**逐条人工审核：**173 条（86%）是单臂局部执行问题**（左臂 114、右臂 59），明确的双臂时序协调失败只有 2 条，空间协调失败 0 条，15 条无法确定。也就是说，在这五个任务上，主要瓶颈是单臂抓取、按压等精细动作，而不是双臂之间的配合。
+
+| 任务 | 成功 | 典型失败 |
+|---|:-:|:-:|
+| handover_block | <img src="assets/probe0/media/sim/handover_success.gif" width="200"> | <img src="assets/probe0/media/sim/handover_fail_knock.gif" width="200"><br><sub>左臂将方块碰倒</sub> <img src="assets/probe0/media/sim/handover_fail_handoff.gif" width="200"><br><sub>交接时右臂未夹住</sub> <img src="assets/probe0/media/sim/handover_fail_release.gif" width="200"><br><sub>右臂未抓稳，左臂已松开</sub> |
+| lift_pot | <img src="assets/probe0/media/sim/lift_pot_success.gif" width="200"> | <img src="assets/probe0/media/sim/lift_pot_fail_slip.gif" width="200"><br><sub>右侧抓持不稳，抬升时滑脱</sub> |
+| put_object_cabinet | <img src="assets/probe0/media/sim/cabinet_success.gif" width="200"> | <img src="assets/probe0/media/sim/cabinet_fail_wrongarm.gif" width="200"><br><sub>物体在右侧，左臂仍去左侧抓</sub> <img src="assets/probe0/media/sim/cabinet_fail_knock.gif" width="200"><br><sub>夹爪撞到物体，将其弹开</sub> <img src="assets/probe0/media/sim/cabinet_uncertain_occl.gif" width="200"><br><sub>开抽屉后目标被遮挡（归因不确定）</sub> |
+| place_empty_cup | <img src="assets/probe0/media/sim/cup_success.gif" width="200"> | <img src="assets/probe0/media/sim/cup_fail_miss.gif" width="200"><br><sub>在杯子右侧抓空</sub> <img src="assets/probe0/media/sim/cup_fail_drop.gif" width="200"><br><sub>放置偏差，调整时杯子掉落</sub> |
+| click_alarmclock | <img src="assets/probe0/media/sim/alarm_success.gif" width="200"> | <img src="assets/probe0/media/sim/alarm_fail_hover.gif" width="200"><br><sub>悬停在按钮上方，没有下压</sub> |
+
+失败片段截取自失败发生前后，1.5× 速。两个任务的失败集中在单侧：`click_alarmclock` 的 44 条失败中左臂 34 条，基本都是“悬停不下压”；`put_object_cabinet` 的 64 条失败中右臂 32 条、左臂 16 条，但右臂同时承担开抽屉和抓物两个角色，不能直接理解为右臂更不准。人工审核由单人完成，只能说明可见现象，内部原因还需要对齐动作 chunk 与实际关节状态来验证。
+
 ## 新任务：`lift_pink_plate`
 
 把真机用的粉色圆盘（直径 20 cm、盘缘高 3 cm）从 STL 导入 RoboTwin，用分段碰撞体保留盘内凹槽，并编写双臂抓盘缘的专家脚本，生成 50 条成功示范。成功判据：盘升高 ≥ 8 cm 且基本水平。
@@ -96,8 +115,8 @@ flowchart LR
 
 ## 待补充
 
-- 仿真五任务 rollout 集锦，以及按失败类型（未抓到 / 交接掉落 / 双臂不同步 / 放置偏差）分类的片段
 - 真机外部全景视频（成功与失败各若干）
+- 失败机制验证：对齐预测 chunk、下发目标与实际关节状态（逐物理步日志 hook 已在 handover_block 上验证）
 - 训练、评测与部署脚本整理后的复现说明
 
 ## 致谢
