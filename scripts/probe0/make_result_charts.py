@@ -74,36 +74,4 @@ for mode, th in THEMES.items():
     ax.set_title("域随机化（demo_randomized）：深色 = Clean，浅色 = DR", loc="left", color=th["t1"], fontsize=12.5)
     fig.tight_layout(); fig.savefig(f"{out}/clean_vs_dr_{mode}.svg", facecolor=th["surface"]); plt.close(fig)
 
-    # ---- 3. heatmap per task (sequential, single hue) ----
-    from matplotlib.colors import LinearSegmentedColormap
-    base = th["s"][0]
-    cmap = LinearSegmentedColormap.from_list("b", [th["surface"], base]) 
-    fig, ax = plt.subplots(figsize=(8.5, 3.3), dpi=100)
-    fig.patch.set_facecolor(th["surface"]); ax.set_facecolor(th["surface"])
-    ax.imshow(clean, cmap=cmap, vmin=0, vmax=100, aspect="auto")
-    for i in range(4):
-        for j in range(5):
-            v = clean[i,j]; best = v == clean[:,j].max()
-            ax.text(j, i, f"{v}", ha="center", va="center", fontsize=11,
-                    color=("#ffffff" if v>=80 else th["t1"]), fontweight=("bold" if best else "normal"))
-    ax.set_xticks(range(5), tasks, color=th["t1"], fontsize=9.5)
-    ax.set_yticks(range(4), models, color=th["t1"], fontsize=10)
-    ax.tick_params(length=0)
-    for s in ax.spines.values(): s.set_visible(False)
-    ax.set_xticks(np.arange(-.5,5,1), minor=True); ax.set_yticks(np.arange(-.5,4,1), minor=True)
-    ax.grid(which="minor", color=th["surface"], lw=2.5); ax.tick_params(which="minor", length=0)
-    ax.set_title("逐任务成功率热力图（%，加粗 = 该任务最高）", loc="left", color=th["t1"], fontsize=12.5)
-    fig.tight_layout(); fig.savefig(f"{out}/clean_heatmap_{mode}.svg", facecolor=th["surface"]); plt.close(fig)
-
-    # ---- 4. long tasks ----
-    lm = ["AE-only LoRA","Default LoRA","Full Finetune"]; lv=[2.4,43.2,27.2]; lc=[th["s"][0],th["s"][2],th["s"][3]]
-    fig, ax = plt.subplots(figsize=(7, 2.4), dpi=100)
-    fig.patch.set_facecolor(th["surface"]); style(ax, th)
-    ax.yaxis.grid(False); ax.xaxis.grid(True, color=th["grid"], lw=.8); ax.spines["bottom"].set_visible(False)
-    yy=np.arange(3)[::-1]
-    ax.barh(yy, lv, 0.55, color=lc, edgecolor=th["surface"], lw=1.5)
-    for k in range(3): ax.text(lv[k]+0.8, yy[k], f"{lv[k]:.1f}%", va="center", fontsize=10, color=th["t1"])
-    ax.set_yticks(yy, lm, color=th["t1"]); ax.set_xlim(0,60); ax.set_xlabel("长五任务平均 SR (%)", color=th["t2"])
-    ax.set_title("历史扩展 · 长五任务（batch 2，150k 步）", loc="left", color=th["t1"], fontsize=12)
-    fig.tight_layout(); fig.savefig(f"{out}/long_tasks_{mode}.svg", facecolor=th["surface"]); plt.close(fig)
 print("ok")
