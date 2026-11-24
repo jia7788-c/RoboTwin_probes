@@ -18,6 +18,7 @@ eval_result/
 
 # Code Generation
 assets/*
+!assets/probe0/
 !assets/_download.py
 !assets/files
 
